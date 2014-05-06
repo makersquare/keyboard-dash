@@ -8,9 +8,6 @@
       max-width: 960px;
       margin: 0 auto;
     }
-    #stats {
-      float: right;
-    }
     .dummy-form { clear: both; }
   </style>
 </head>
@@ -20,14 +17,15 @@
 
   <h1>Keboard <em>Dash</em></h1>
 
-  <div id="stats">
-    <label><span class="strokes">0</span> strokes</label><br />
-    <label class="progress">0</label> / <label class="total">0</label>
-  </div>
-
   <p>Delete all `x` characters. You are restricted to the listed keyboard shortcuts.</p>
 
   <div class="shortcut-list"></div>
+
+  <div id="stats">
+    <label class="progress">0</label> / <label class="total">0</label>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <label><span class="stroke-count">0</span> strokes</label><br />
+  </div>
 
   <form class="dummy-form">
     <textarea id="editor">
@@ -45,6 +43,7 @@
 </div>
 
 <script src="bower_components/codemirror/lib/codemirror.js"></script>
+<script src="bower_components/jquery/dist/jquery.js"></script>
 <script type="text/javascript">
 (function () {
 
@@ -56,8 +55,11 @@
     "Alt-D": "delWordAfter", "Alt-Backspace": "delWordBefore", "Ctrl-K": "killLine", "Ctrl-T": "transposeChars"
   }
 
+  $('#stats .total').text(textarea.value.split('x').length - 1);
+
   window.Dash = {
     lastKeypressProductivity: 0,
+    progress: 0,
     history: [],
     trainer: CodeMirror.fromTextArea(textarea, {
       lineNumbers: true,
@@ -70,7 +72,10 @@
   Dash.trainer.on('keyHandled', function (editor, name, e) {
     // Add keystroke to history
     Dash.history.push({ keystroke: name, productivity: Dash.lastKeypressProductivity });
+    Dash.progress += Dash.lastKeypressProductivity;
     Dash.lastKeypressProductivity = 0; // Just in case
+    $('#stats .stroke-count').text(Dash.history.length);
+    $('#stats .progress').text(Dash.progress);
   });
 
   Dash.trainer.on('beforeChange', function (editor, change) {

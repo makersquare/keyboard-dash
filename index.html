@@ -6,14 +6,32 @@
 </head>
 <body>
 
-<textarea id="editor"></textarea>
+<h1>Keboard <em>Dash</em></h1>
+
+<form class="dummy-form">
+  <textarea id="editor">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+</textarea>
+</form>
 
 <script src="bower_components/codemirror/lib/codemirror.js"></script>
 <script type="text/javascript">
   var textarea = document.getElementById('editor');
+  CodeMirror.keyMap['training'] = {
+    "Ctrl-F": "goCharRight", "Ctrl-B": "goCharLeft", "Ctrl-P": "goLineUp", "Ctrl-N": "goLineDown",
+    "Alt-F": "goWordRight", "Alt-B": "goWordLeft", "Ctrl-A": "goLineStart", "Ctrl-E": "goLineEnd",
+    "Ctrl-V": "goPageDown", "Alt-V": "goPageUp", "Ctrl-D": "delCharAfter", "Ctrl-H": "delCharBefore",
+    "Alt-D": "delWordAfter", "Alt-Backspace": "delWordBefore", "Ctrl-K": "killLine", "Ctrl-T": "transposeChars"
+  }
   var editor = CodeMirror.fromTextArea(textarea, {
+    lineNumbers: true,
     mode: "text/html",
-    theme: "blackboard"
+    theme: "blackboard",
+    keyMap: "training"
   });
 </script>
 

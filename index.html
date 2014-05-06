@@ -16,6 +16,7 @@
       margin-bottom: 10px;
     }
     #stats { clear: both; }
+    .error { color: #c00; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -34,6 +35,8 @@
     <label><span class="stroke-count">0</span> strokes</label>
     &nbsp;&nbsp;&nbsp;&nbsp;
     <label class="timer">Click anywhere and delete an `x` to start!</label>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <label class="error"></label>
   </div>
 
   <form class="dummy-form">
@@ -117,10 +120,28 @@
         var seconds = (totalSeconds % 60);
         var formatted = (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
         $('.timer').text(formatted);
-      }, 1000);
+      }, 1500);
     },
     finish: function () {
       clearTimeout(KeyboardDash.timer);
+    },
+
+    errorCount: 0,
+    showError: function (message) {
+      for (var i = this.errorCount-1; i >= 0; i -= 1) { message += '!'; }
+      $('.error').text(message);
+      this.errorCount += 1;
+
+      clearTimeout(this.errorTimer);
+      var self = this;
+      this.errorTimer = setTimeout(function () {
+        self.clearError();
+      }, 1000);
+    },
+    clearError: function () {
+      if (this.errorCount === 0) { return; }
+      $('.error').text('');
+      this.errorCount = 0;
     }
   };
 
@@ -134,13 +155,13 @@
 
   KeyboardDash.trainer.on('beforeChange', function (editor, change) {
     if (change.text[0]) {
-      console.log("You can't add your own characters!");
+      KeyboardDash.showError("You can't add your own characters");
       change.cancel();
       return;
     }
     var deletingChars = editor.doc.getRange(change.from, change.to);
     if (deletingChars.match(/[^x]/)) {
-      console.log("You can only delete x characters!");
+      KeyboardDash.showError("You can only delete x characters");
       change.cancel();
       return;
     }
@@ -150,6 +171,7 @@
     }
     var points = deletingChars.split('x').length - 1;
     KeyboardDash.current.recordPoints(points);
+    KeyboardDash.clearError();
   });
 })();
 </script>

@@ -9,6 +9,13 @@
       margin: 0 auto;
     }
     .dummy-form { clear: both; }
+    ul.shortcut-list li {
+      float: left;
+      list-style: none;
+      width: 112px;
+      margin-bottom: 10px;
+    }
+    #stats { clear: both; }
   </style>
 </head>
 <body>
@@ -19,7 +26,7 @@
 
   <p>Delete all `x` characters. You are restricted to the listed keyboard shortcuts.</p>
 
-  <div class="shortcut-list"></div>
+  <ul class="shortcut-list"></ul>
 
   <div id="stats">
     <label class="progress">0</label> / <label class="total">0</label>
@@ -48,11 +55,16 @@
 (function () {
 
   var textarea = document.getElementById('editor');
-  CodeMirror.keyMap['training'] = {
+  var keyMap = CodeMirror.keyMap['training'] = {
     "Ctrl-F": "goCharRight", "Ctrl-B": "goCharLeft", "Ctrl-P": "goLineUp", "Ctrl-N": "goLineDown",
     "Alt-F": "goWordRight", "Alt-B": "goWordLeft", "Ctrl-A": "goLineStart", "Ctrl-E": "goLineEnd",
     "Ctrl-V": "goPageDown", "Alt-V": "goPageUp", "Ctrl-D": "delCharAfter", "Ctrl-H": "delCharBefore",
     "Alt-D": "delWordAfter", "Alt-Backspace": "delWordBefore", "Ctrl-K": "killLine", "Ctrl-T": "transposeChars"
+  }
+
+  for (var keystroke in keyMap) {
+    var name = keyMap[keystroke]
+    $('.shortcut-list').append("<li><b>" + keystroke + ":</b><br />" + name + "</li>");
   }
 
   $('#stats .total').text(textarea.value.split('x').length - 1);

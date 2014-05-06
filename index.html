@@ -3,13 +3,34 @@
   <title>Keyboard Dash!</title>
   <link rel="stylesheet" href="bower_components/codemirror/lib/codemirror.css" />
   <link rel="stylesheet" href="bower_components/codemirror/theme/blackboard.css" />
+  <style type="text/css">
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    #stats {
+      float: right;
+    }
+    .dummy-form { clear: both; }
+  </style>
 </head>
 <body>
 
-<h1>Keboard <em>Dash</em></h1>
+<div class="container">
 
-<form class="dummy-form">
-  <textarea id="editor">
+  <h1>Keboard <em>Dash</em></h1>
+
+  <div id="stats">
+    <label><span class="strokes">0</span> strokes</label><br />
+    <label class="progress">0</label> / <label class="total">0</label>
+  </div>
+
+  <p>Delete all `x` characters. You are restricted to the listed keyboard shortcuts.</p>
+
+  <div class="shortcut-list"></div>
+
+  <form class="dummy-form">
+    <textarea id="editor">
  x  _xx__xx__ xx   x   x      x               _       _
   xx/ x_xx__x_xx|  x  x  x x   x      xx       x   | |   xxx  | xx|x
  xx| |x  xxx   x__xxx  xxx_x x__xx   _xxx_ _ _x xx_xx_ __xx _x| |_x ___|x |
@@ -18,11 +39,15 @@
   xx\x_x_x_xxx_\__x_xxxx/|_| xx|_x|xxx\_xx_,xx |_x|  \__xxxx,_|\_x_|xxx___xxxxx(_xx)
  x  x x   xx   x x     xx x  x x __/ |xxx
  x x xx   x xx  xx  xx  xx  xxxxx  x xx xxx |___xx/xxx
-</textarea>
-</form>
+  </textarea>
+  </form>
+
+</div>
 
 <script src="bower_components/codemirror/lib/codemirror.js"></script>
 <script type="text/javascript">
+(function () {
+
   var textarea = document.getElementById('editor');
   CodeMirror.keyMap['training'] = {
     "Ctrl-F": "goCharRight", "Ctrl-B": "goCharLeft", "Ctrl-P": "goLineUp", "Ctrl-N": "goLineDown",
@@ -30,15 +55,25 @@
     "Ctrl-V": "goPageDown", "Alt-V": "goPageUp", "Ctrl-D": "delCharAfter", "Ctrl-H": "delCharBefore",
     "Alt-D": "delWordAfter", "Alt-Backspace": "delWordBefore", "Ctrl-K": "killLine", "Ctrl-T": "transposeChars"
   }
-  var dashTrainer = CodeMirror.fromTextArea(textarea, {
-    lineNumbers: true,
-    mode: "text/html",
-    theme: "blackboard",
-    keyMap: "training"
+
+  window.Dash = {
+    lastKeypressProductivity: 0,
+    history: [],
+    trainer: CodeMirror.fromTextArea(textarea, {
+      lineNumbers: true,
+      mode: "text/html",
+      theme: "blackboard",
+      keyMap: "training"
+    })
+  };
+
+  Dash.trainer.on('keyHandled', function (editor, name, e) {
+    // Add keystroke to history
+    Dash.history.push({ keystroke: name, productivity: Dash.lastKeypressProductivity });
+    Dash.lastKeypressProductivity = 0; // Just in case
   });
 
-  // Prevent changes that would delete important characters
-  dashTrainer.on('beforeChange', function (editor, change) {
+  Dash.trainer.on('beforeChange', function (editor, change) {
     if (change.text[0]) {
       console.log("You can't add your own characters!");
       change.cancel();
@@ -48,8 +83,11 @@
     if (deletingChars.match(/[^x]/)) {
       console.log("You can only delete x characters!");
       change.cancel();
+      return;
     }
+    Dash.lastKeypressProductivity = deletingChars.split('x').length - 1;
   });
+})();
 </script>
 
 </body>

@@ -1,0 +1,21 @@
+<html>
+<head>
+  <title>Keyboard Dash!</title>
+  <link rel="stylesheet" href="bower_components/codemirror/lib/codemirror.css" />
+  <link rel="stylesheet" href="bower_components/codemirror/theme/blackboard.css" />
+</head>
+<body>
+
+<textarea id="editor"></textarea>
+
+<script src="bower_components/codemirror/lib/codemirror.js"></script>
+<script type="text/javascript">
+  var textarea = document.getElementById('editor');
+  var editor = CodeMirror.fromTextArea(textarea, {
+    mode: "text/html",
+    theme: "blackboard"
+  });
+</script>
+
+</body>
+</html>

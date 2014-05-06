@@ -9,12 +9,15 @@
 <h1>Keboard <em>Dash</em></h1>
 
 <form class="dummy-form">
-  <textarea id="editor">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+  <textarea id="editor">
+ x  _xx__xx__ xx   x   x      x               _       _
+  xx/ x_xx__x_xx|  x  x  x x   x      xx       x   | |   xxx  | xx|x
+ xx| |x  xxx   x__xxx  xxx_x x__xx   _xxx_ _ _x xx_xx_ __xx _x| |_x ___|x |
+ | |    / _ \| '_ \xxx / xxxx_xx` x| '__/xx _` | x__/ __x|xx |x
+ | xx|x_xxx_xx_x| (_x)x xx| |x xx| |xxxx (_|x |x | xx| xxx(_|x | x|_\__ \_|
+  xx\x_x_x_xxx_\__x_xxxx/|_| xx|_x|xxx\_xx_,xx |_x|  \__xxxx,_|\_x_|xxx___xxxxx(_xx)
+ x  x x   xx   x x     xx x  x x __/ |xxx
+ x x xx   x xx  xx  xx  xx  xxxxx  x xx xxx |___xx/xxx
 </textarea>
 </form>
 
@@ -27,11 +30,25 @@ proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
     "Ctrl-V": "goPageDown", "Alt-V": "goPageUp", "Ctrl-D": "delCharAfter", "Ctrl-H": "delCharBefore",
     "Alt-D": "delWordAfter", "Alt-Backspace": "delWordBefore", "Ctrl-K": "killLine", "Ctrl-T": "transposeChars"
   }
-  var editor = CodeMirror.fromTextArea(textarea, {
+  var dashTrainer = CodeMirror.fromTextArea(textarea, {
     lineNumbers: true,
     mode: "text/html",
     theme: "blackboard",
     keyMap: "training"
+  });
+
+  // Prevent changes that would delete important characters
+  dashTrainer.on('beforeChange', function (editor, change) {
+    if (change.text[0]) {
+      console.log("You can't add your own characters!");
+      change.cancel();
+      return;
+    }
+    var deletingChars = editor.doc.getRange(change.from, change.to);
+    if (deletingChars.match(/[^x]/)) {
+      console.log("You can only delete x characters!");
+      change.cancel();
+    }
   });
 </script>
 

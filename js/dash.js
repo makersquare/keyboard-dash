@@ -8,17 +8,23 @@
     "Ctrl-V": "goPageDown", "Alt-V": "goPageUp", "Ctrl-D": "delCharAfter", "Ctrl-H": "delCharBefore",
     "Alt-D": "delWordAfter", "Alt-Backspace": "delWordBefore", "Ctrl-K": "killLine", "Ctrl-T": "transposeChars"
   };
+  var expandKeys = function (ctrls, alts) {
+    var keystrokes = [];
+    _.each(ctrls.split(''), function (ch) { keystrokes.push('Ctrl-'+ch); });
+    _.each(alts.split(''), function (ch) { keystrokes.push('Alt-'+ch); });
+    return _.pick(standardMap, keystrokes);
+  }
   // LAST TIME: CREATE LEVEL-SPECIFIC LEVELS
   var levels = [
     {
       id: "updown",
       name: "Up & Down",
-      map: _.pick(standardMap, 'Ctrl-A', 'Ctrl-E', 'Ctrl-N', 'Ctrl-P', 'Ctrl-D', 'Ctrl-H')
+      map: expandKeys('ADEHNP')
     },
     {
       id: "hourglass",
       name: "Hourglass",
-      map: _.pick(standardMap, 'Ctrl-A', 'Ctrl-E', 'Ctrl-N', 'Ctrl-P', 'Ctrl-D', 'Ctrl-H', 'Ctrl-F', 'Ctrl-B', 'Alt-F', 'Alt-B')
+      map: expandKeys('ADEHNPBF', 'BF');
     },
     {
       id: "scattered",

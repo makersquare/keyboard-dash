@@ -15,8 +15,9 @@
       width: 112px;
       margin-bottom: 10px;
     }
-    #stats { clear: both; }
+    .stats { clear: both; }
     .error { color: #c00; font-weight: bold; }
+    .success { color: #0c0; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -29,18 +30,35 @@
 
   <ul class="shortcut-list"></ul>
 
-  <div id="stats">
-    <label class="progress">0</label> / <label class="total">0</label>
-    &nbsp;&nbsp;&nbsp;&nbsp;
-    <label><span class="stroke-count">0</span> strokes</label>
-    &nbsp;&nbsp;&nbsp;&nbsp;
-    <label class="timer">Click anywhere and delete an `x` to start!</label>
-    &nbsp;&nbsp;&nbsp;&nbsp;
-    <label class="error"></label>
-  </div>
+  <div id="dash-ui"></div>
 
-  <form class="dummy-form">
-    <textarea id="editor">
+</div>
+
+<script type="text/template" class="map updown">x_____________x
+x_____________x
+x_____________x
+x_____________x
+x_____________x
+x_____________x
+x_____________x
+x_____________x
+x_____________x
+x_____________x
+</script>
+
+<script type="text/template" class="map hourglass">
+x_____________x
+ x___________x
+  x_________x
+   x_______x
+    x_____x
+   x_______x
+  x_________x
+ x___________x
+x_____________x
+</script>
+
+<script type="text/template" class="map scattered">
    _____ xx   x   x      x               _       _
   xx/ x___x_|  x  x  x x   x      xx       x   | |     | |x
  xx| |   xxx   __  _ __x   __ _ _x __ __ _x| |_x ___|x |
@@ -49,132 +67,15 @@
   x\x_____\___/|_| xx|_x|\__,xx |_x|  \__,_|\_x_|___(_xx)
            x     xx x  x x __/ |xxx
  x x    x xx  xx  xx  xx  xx  x xx xxx |___xx/xxx
-  </textarea>
-  </form>
-
-</div>
+ </script>
 
 <script src="bower_components/codemirror/lib/codemirror.js"></script>
-<script src="bower_components/jquery/dist/jquery.js"></script>
-<script type="text/javascript">
-(function () {
+<script src="bower_components/riot/riot.js"></script>
+<script src="bower_components/underscore/underscore.js"></script>
+<script src="bower_components/react/react.js"></script>
+<script src="bower_components/react/JSXTransformer.js"></script>
 
-  var textarea = document.getElementById('editor');
-  var keyMap = CodeMirror.keyMap['training'] = {
-    "Ctrl-F": "goCharRight", "Ctrl-B": "goCharLeft", "Ctrl-P": "goLineUp", "Ctrl-N": "goLineDown",
-    "Alt-F": "goWordRight", "Alt-B": "goWordLeft", "Ctrl-A": "goLineStart", "Ctrl-E": "goLineEnd",
-    "Ctrl-V": "goPageDown", "Alt-V": "goPageUp", "Ctrl-D": "delCharAfter", "Ctrl-H": "delCharBefore",
-    "Alt-D": "delWordAfter", "Alt-Backspace": "delWordBefore", "Ctrl-K": "killLine", "Ctrl-T": "transposeChars"
-  }
-
-  for (var keystroke in keyMap) {
-    var name = keyMap[keystroke]
-    $('.shortcut-list').append("<li><b>" + keystroke + ":</b><br />" + name + "</li>");
-  }
-
-  $('#stats .total').text(textarea.value.split('x').length - 1);
-
-  var Dash = function () {
-    var counter = 0;
-    var lastKeypressScore = 0;
-
-    this.history = [];
-    this.score = 0;
-    this.startTime = (new Date()).getTime();
-    this.stopTime = null;
-
-    this.tick = function () {
-      counter += 1;
-      this.history.push({ tick: counter });
-      return counter;
-    };
-    this.recordPoints = function (amount) {
-      lastKeypressScore = amount;
-    };
-    this.recordKeystroke = function (keystroke) {
-      this.history.push({ keystroke: name, points: lastKeypressScore });
-      this.score += lastKeypressScore;
-      lastKeypressScore = 0;
-    }
-    this.end = function () {
-      this.stopTime = (new Date()).getTime();
-    };
-  };
-
-  window.KeyboardDash = {
-    trainer: CodeMirror.fromTextArea(textarea, {
-      lineNumbers: true,
-      mode: "text/html",
-      theme: "blackboard",
-      keyMap: "training"
-    }),
-    current: null,
-    start: function () {
-      this.current = new Dash();
-      $('.timer').text("00:00 - Go!");
-
-      var dash = this.current;
-      KeyboardDash.timer = setInterval(function () {
-        var totalSeconds = dash.tick();
-        var minutes = parseInt(totalSeconds / 60)
-        var seconds = (totalSeconds % 60);
-        var formatted = (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
-        $('.timer').text(formatted);
-      }, 1500);
-    },
-    finish: function () {
-      clearTimeout(KeyboardDash.timer);
-    },
-
-    errorCount: 0,
-    showError: function (message) {
-      for (var i = this.errorCount-1; i >= 0; i -= 1) { message += '!'; }
-      $('.error').text(message);
-      this.errorCount += 1;
-
-      clearTimeout(this.errorTimer);
-      var self = this;
-      this.errorTimer = setTimeout(function () {
-        self.clearError();
-      }, 1000);
-    },
-    clearError: function () {
-      if (this.errorCount === 0) { return; }
-      $('.error').text('');
-      this.errorCount = 0;
-    }
-  };
-
-  KeyboardDash.trainer.on('keyHandled', function (editor, name, e) {
-    if (!KeyboardDash.current) return;
-    // Add keystroke to history
-    KeyboardDash.current.recordKeystroke(name)
-    $('#stats .stroke-count').text(KeyboardDash.current.history.length);
-    $('#stats .progress').text(KeyboardDash.current.score);
-  });
-
-  KeyboardDash.trainer.on('beforeChange', function (editor, change) {
-    if (change.text[0]) {
-      KeyboardDash.showError("You can't add your own characters");
-      change.cancel();
-      return;
-    }
-    var deletingChars = editor.doc.getRange(change.from, change.to);
-    if (deletingChars.match(/[^x]/)) {
-      KeyboardDash.showError("You can only delete x characters");
-      change.cancel();
-      return;
-    }
-
-    if (!KeyboardDash.current) {
-      KeyboardDash.start();
-    }
-    var points = deletingChars.split('x').length - 1;
-    KeyboardDash.current.recordPoints(points);
-    KeyboardDash.clearError();
-  });
-})();
-</script>
+<script type="text/jsx" src="js/dash.js"></script>
 
 </body>
 </html>

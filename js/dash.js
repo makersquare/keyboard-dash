@@ -74,13 +74,20 @@
       }
     },
     start: function () {
-      this.status = 'inProgress';
+      this.status = 'running';
       this.trigger('update');
     },
     end: function () {
       this.stopTime = (new Date()).getTime();
       this.status = 'done';
       this.trigger('end', this.score);
+    },
+    abort: function () {
+      this.status = 'aborted';
+      this.trigger('update');
+    },
+    isRunning: function () {
+      return this.status == 'running';
     }
   }
 
@@ -93,6 +100,11 @@
     };
 
     this.setLevel = function (level) {
+      if (this.currentDash && this.currentDash.isRunning()) {
+        this.currentDash.abort();
+        this.end();
+      }
+
       this.level = level;
       this.ui.setState({ keyMap: this.level.map });
       CodeMirror.keyMap['training'] = this.level.map;
@@ -105,6 +117,7 @@
       this.goal = level.content.split('x').length - 1;
       this.editor.lock();
     };
+    this.ui.props.onLevelSelect = this.setLevel.bind(this);
 
     this.begin = function () {
       // var textarea = document.getElementById('editor');
@@ -168,7 +181,7 @@
     });
 
     var handleKey = function (editor, name, e) {
-      if (!manager.currentDash) return;
+      if (!manager.currentDash || !manager.currentDash.isRunning()) return;
 
       // Add keystroke to history
       manager.currentDash.recordKeystroke(name);
@@ -192,7 +205,7 @@
         change.cancel();
         return;
       }
-      if (!manager.currentDash) {
+      if (!manager.currentDash || !manager.currentDash.isRunning()) {
         manager.begin();
       }
       var points = deletingChars.split('x').length - 1;
@@ -215,6 +228,23 @@
   // // // // // //
   // REACT VIEWS //
   // // // // // //
+  var LevelSelect = React.createClass({
+    getInitialState: function () {
+      return { levels: levels };
+    },
+    render: function () {
+      var options = this.state.levels.map(function (level, i) {
+        return (<option value={level.id}>{level.name}</option>)
+      });
+      return (<select onChange={this.handleChange}>{options}</select>);
+    },
+    handleChange: function (e) {
+      var levelId = e.target.value;
+      var level = _.find(this.state.levels, function (lvl) { return lvl.id == levelId });
+      this.props.onSelect(level);
+    }
+  });
+
   var KeyMap = React.createClass({
     render: function () {
       var shortcuts = _.map(this.props.data, function(name, keystroke) {
@@ -227,8 +257,9 @@
   var DashStats = React.createClass({
     statuses: {
       'pending': "Click anywhere and delete an `x` to start!",
-      'inProgress': "Go!",
-      'done': "Great job!"
+      'running': "Go!",
+      'done': "Great job!",
+      'aborted': "Aborted."
     },
     render: function () {
       return (<div className="stats">
@@ -258,6 +289,7 @@
     },
     render: function () {
       return (<div>
+        <LevelSelect onSelect={this.props.onLevelSelect} />
         <KeyMap data={this.state.keyMap} />
         <DashStats dash={this.state.dash} />
         <textarea class="editor" ref="editor"></textarea>
@@ -274,6 +306,6 @@
   window.manager = new DashManager(ui);
   // There's gotta be a better way
   createTrainerEditor(manager, ui.refs.editor.getDOMNode());
-  manager.setLevel(levels[2]);
+  manager.setLevel(levels[0]);
 
 })();

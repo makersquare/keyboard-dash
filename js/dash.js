@@ -19,12 +19,17 @@
     {
       id: "updown",
       name: "Up & Down",
-      map: expandKeys('ADEHNP')
+      map: expandKeys('ADEHNP', '')
     },
     {
       id: "hourglass",
       name: "Hourglass",
-      map: expandKeys('ADEHNPBF', 'BF');
+      map: expandKeys('ADEHNPBF', 'BF')
+    },
+    {
+      id: "snake",
+      name: "Snake!!",
+      map: standardMap
     },
     {
       id: "scattered",
@@ -269,6 +274,6 @@
   window.manager = new DashManager(ui);
   // There's gotta be a better way
   createTrainerEditor(manager, ui.refs.editor.getDOMNode());
-  manager.setLevel(levels[1]);
+  manager.setLevel(levels[2]);
 
 })();

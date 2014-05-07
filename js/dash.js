@@ -16,6 +16,11 @@
       map: _.pick(standardMap, 'Ctrl-A', 'Ctrl-E', 'Ctrl-N', 'Ctrl-P', 'Ctrl-D', 'Ctrl-H')
     },
     {
+      id: "hourglass",
+      name: "Hourglass",
+      map: _.pick(standardMap, 'Ctrl-A', 'Ctrl-E', 'Ctrl-N', 'Ctrl-P', 'Ctrl-D', 'Ctrl-H', 'Ctrl-F', 'Ctrl-B', 'Alt-F', 'Alt-B')
+    },
+    {
       id: "scattered",
       name: "Scattered",
       map: standardMap
@@ -26,6 +31,7 @@
     var lastKeypressScore = 0;
     $.observable(this);
 
+    this.status = 'pending';
     this.history = [];
     this.goal = goal;
     this.score = 0;
@@ -52,12 +58,18 @@
 
       lastKeypressScore = 0;
       if (this.score === this.goal) {
+        console.log('Win!');
         this.end();
       }
     },
+    start: function () {
+      this.status = 'inProgress';
+      this.trigger('update');
+    },
     end: function () {
-      this.trigger('end', this.score);
       this.stopTime = (new Date()).getTime();
+      this.status = 'done';
+      this.trigger('end', this.score);
     }
   }
 
@@ -92,19 +104,24 @@
       this.currentDash.on('update', function () {
         self.ui.setState({ dash: self.currentDash });
       });
-      this.ui.setState({ dash: this.currentDash });
+      this.currentDash.on('end', function () {
+        self.end();
+      });
+
+      this.currentDash.start();
 
       // $('.timer').text("00:00 - Go!");
 
       var self = this;
-      this.timer = setInterval(function () {
+      this.tickTimer = setInterval(function () {
         var totalSeconds = self.currentDash.tick();
         // $('.timer').text(formatted);
       }, 1500);
     };
 
     this.end = function () {
-      clearTimeout(KeyboardDash.timer);
+      clearTimeout(this.tickTimer);
+      self.ui.setState({ dash: this.currentDash });
     };
 
     this.errorCount = 0;
@@ -197,6 +214,11 @@
   });
 
   var DashStats = React.createClass({
+    statuses: {
+      'pending': "Click anywhere and delete an `x` to start!",
+      'inProgress': "Go!",
+      'done': "Great job!"
+    },
     render: function () {
       return (<div className="stats">
         <label>{this.props.dash.score}</label> / <label>{this.props.dash.goal}</label>
@@ -205,6 +227,7 @@
         &nbsp;&nbsp;&nbsp;&nbsp;
         <label>{this.elapsedTime()}</label>
         &nbsp;&nbsp;&nbsp;&nbsp;
+        <label className="status">{this.statuses[this.props.dash.status]}</label>
         <label className="error"></label>
         <label className="success"></label>
       </div>);
@@ -240,6 +263,6 @@
   window.manager = new DashManager(ui);
   // There's gotta be a better way
   createTrainerEditor(manager, ui.refs.editor.getDOMNode());
-  manager.setLevel(levels[0]);
+  manager.setLevel(levels[1]);
 
 })();

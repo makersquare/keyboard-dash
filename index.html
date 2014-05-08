@@ -109,7 +109,25 @@ x_____________x
 <script src="bower_components/react/react.js"></script>
 <script src="bower_components/react/JSXTransformer.js"></script>
 
-<script type="text/jsx" src="js/dash.js"></script>
+<script type="text/javascript" src="js/dash.js"></script>
+<script type="text/javascript" src="js/models/dash.js"></script>
+<script type="text/javascript" src="js/presenters/dash-presenter.js"></script>
+<script type="text/jsx" src="js/views/interface.js"></script>
+
+<script type="text/jsx">
+/** @jsx React.DOM **/
+(function () {
+  // Time to React!
+  var ui = React.renderComponent(
+    <KeyboardDashView />,
+    document.getElementById('dash-ui')
+  );
+  var presenter = new DashPresenter(ui);
+  // There's gotta be a better way
+  KeyboardDash.createTrainerEditor(presenter, ui.refs.editor.getDOMNode());
+  presenter.setLevel(KeyboardDash.levels[0]);
+})();
+</script>
 
 </body>
 </html>

@@ -51,10 +51,17 @@
       </div>);
     },
     elapsedTime: function () {
-      var totalSeconds = this.props.dash.seconds;
+      var dash = this.props.dash;
+
+      var totalSeconds = dash.seconds;
       var minutes = parseInt(totalSeconds / 60)
       var seconds = (totalSeconds % 60);
       var formatted = (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+
+      if (dash.status === 'done') {
+        var ms = (dash.stopTime - dash.startTime) % 1000;
+        formatted += "." + ms;
+      }
       return formatted;
     }
   });

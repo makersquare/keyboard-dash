@@ -36,7 +36,7 @@
       this.currentDash.on('update', function () {
         self.ui.setState({ dash: self.currentDash });
       });
-      this.currentDash.on('end', function () {
+      this.currentDash.on('stop', function () {
         self.end();
       });
 

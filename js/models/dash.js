@@ -33,17 +33,17 @@
       lastKeypressScore = 0;
       if (this.score === this.goal) {
         console.log('Win!');
-        this.end();
+        this.stop();
       }
     },
     start: function () {
       this.status = 'running';
       this.trigger('update');
     },
-    end: function () {
+    stop: function () {
       this.stopTime = (new Date()).getTime();
       this.status = 'done';
-      this.trigger('end', this.score);
+      this.trigger('stop', this.score);
     },
     abort: function () {
       this.status = 'aborted';
